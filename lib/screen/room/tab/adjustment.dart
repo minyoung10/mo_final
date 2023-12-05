@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:mo_final/screen/room/detail/adjustment_detail.dart';
 
 import '../add/add_adjustment.dart';
 
@@ -12,10 +14,12 @@ class AdjustmentTab extends StatefulWidget {
 
 class _AdjustmentTabState extends State<AdjustmentTab> {
   final firestore = FirebaseFirestore.instance;
-  String? roomDataId;
+  String? eventDataId;
   String? userindex;
 
   var scroll = ScrollController();
+  var format = NumberFormat('###,###,###,###');
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -36,29 +40,63 @@ class _AdjustmentTabState extends State<AdjustmentTab> {
               }
               final docs = snapshot.data!.docs;
 
-              // Now you can use filteredDocs to display data from Firestore
               if (docs.isNotEmpty) {
-                final roomSnapshot = docs.first;
-                final roomData = roomSnapshot.data();
+                final eventData = docs.toList();
 
-                return Container(
-                  color: Colors.white,
-                  child: SingleChildScrollView(
-                    child: Container(
-                      margin:
-                          const EdgeInsets.only(left: 25, right: 25, top: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(roomData['title']),
-                          Text(roomData['price']),
-                          Text(roomData['image'].toString()),
-                          const SizedBox(height: 30),
-                          const SizedBox(height: 40),
-                        ],
+                return ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final eventPrice = format
+                        .format(double.parse(eventData[index]['price']))
+                        .toString();
+                    return GestureDetector(
+                      onTap: () {
+                        debugPrint(eventData[index]['id']);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AdjustmentDetail(
+                              eventId: widget.id,
+                              docId: eventData[index]['id'],
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(
+                            left: 25, right: 25, bottom: 25),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                              color: const Color.fromRGBO(227, 255, 217, 1),
+                              borderRadius: BorderRadius.circular(12)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                eventData[index]['title'],
+                                style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xff248900)),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text("$eventPrice 원",
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600))
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 );
               } else {
                 return const Text('No data found.');
@@ -73,9 +111,10 @@ class _AdjustmentTabState extends State<AdjustmentTab> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => AddAdjustment(
-                          id: widget.id,
-                        )),
+                  builder: (context) => AddAdjustment(
+                    id: widget.id,
+                  ),
+                ),
               );
             },
             style: ElevatedButton.styleFrom(
