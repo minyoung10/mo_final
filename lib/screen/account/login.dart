@@ -28,37 +28,50 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageScreenState extends State<LoginPage> {
-  void _googleSignIn() async {
+  Future<void> signInWithGoogle(BuildContext context) async {
     try {
-      UserCredential userCredential = await signInWithGoogle();
-
-      final db = FirebaseFirestore.instance;
-      final docref =
-          db.collection('user').doc(FirebaseAuth.instance.currentUser!.uid);
-      await docref.set({
-        'email': userCredential.user!.email,
-        'status_message': 'I promise to take the test honestly before GOD',
-        'uid': userCredential.user!.uid,
-      });
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser != null) {
+        GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        OAuthCredential googleCredential = GoogleAuthProvider.credential(
+            accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
+        UserCredential credential =
+            await FirebaseAuth.instance.signInWithCredential(googleCredential);
+        final User? user = credential.user;
+        if (user != null) {
+          await FirebaseFirestore.instance
+              .collection('user')
+              .doc(user.uid)
+              .set(<String, dynamic>{
+            'email': googleUser.email,
+            'name': googleUser.displayName,
+            'status_message': "I promise to take the test honestly before GOD",
+            'uid': user.uid,
+          });
+        }
+      }
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const BottomNavigation()),
       );
     } catch (e) {
-      debugPrint('Error signing in with Google: $e');
+      debugPrint("Google 로그인 오류: $e");
     }
   }
-
-  void _anonySignIn() async {
+  Future<void> signInWithAnonymous() async {
     try {
-      final userCredential = await FirebaseAuth.instance.signInAnonymously();
-      final db = FirebaseFirestore.instance;
-      final docref =
-          db.collection('user').doc(FirebaseAuth.instance.currentUser!.uid);
-      await docref.set({
-        'status_message': 'I promise to take the test honestly before GOD',
-        'uid': userCredential.user!.uid,
-      });
+      UserCredential credential =
+          await FirebaseAuth.instance.signInAnonymously();
+      User? user = credential.user;
+      if (user != null) {
+        await FirebaseFirestore.instance
+            .collection('user')
+            .doc(user.uid)
+            .set(<String, dynamic>{
+          'status_message': "I promise to take the test honestly before GOD",
+          'uid': user.uid,
+        });
+      }
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const BottomNavigation()),
@@ -84,7 +97,7 @@ class _LoginPageScreenState extends State<LoginPage> {
           children: [
             ElevatedButton(
               onPressed: () {
-                _googleSignIn();
+                signInWithGoogle(context);
               },
               style: ElevatedButton.styleFrom(
                 elevation: 0,
@@ -100,7 +113,7 @@ class _LoginPageScreenState extends State<LoginPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                _anonySignIn();
+                signInWithAnonymous();
               },
               style: ElevatedButton.styleFrom(
                 elevation: 0,

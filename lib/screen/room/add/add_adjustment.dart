@@ -15,12 +15,32 @@ class AddAdjustment extends StatefulWidget {
 class _AddNotificationState extends State<AddAdjustment> {
   int? selectedDropdownValue; // 드롭다운에서 선택된 값을 저장하는 변수
   String selectedDropdownText = ''; // 기본 값 설정
+  List<String> memberList = [];
 
   final TextEditingController _titleController = TextEditingController();
   bool _isTextFieldEmpty = true;
   String _enteredText = '';
 
   final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _peopleController = TextEditingController();
+
+  Future<void> fetchMemberList() async {
+    final docSnapshot = await FirebaseFirestore.instance.collection("Biginfo").doc(widget.id).get();
+    if (docSnapshot.exists) {
+      final data = docSnapshot.data() as Map<String, dynamic>;
+      debugPrint("${data["users_id"]}");
+      setState(() {
+        memberList = List<String>.from(data['users_id'] ?? []);
+      });
+      debugPrint("memberList: $memberList");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchMemberList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +109,25 @@ class _AddNotificationState extends State<AddAdjustment> {
                 ),
               ),
               const SizedBox(height: 10),
+              const Text('입금자명을 입력해 주세요.'),
+              TextFormField(
+                controller: _peopleController,
+                maxLength: 15,
+                style: blackw500.copyWith(fontSize: 24),
+                decoration: InputDecoration(
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFFEFEFEF)),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFFEFEFEF)),
+                  ),
+                  hintText: "예) 정광진",
+                  hintStyle: greyw500.copyWith(fontSize: 14),
+                ),
+              ),
+              const SizedBox(height: 10),
               const Text('정산 멤버를 추가해 주세요.'),
+              
               const SizedBox(height: 40),
               Container(
                 width: 343,
@@ -100,12 +138,18 @@ class _AddNotificationState extends State<AddAdjustment> {
                     final docRef = FirebaseFirestore.instance
                         .collection("Biginfo")
                         .doc(widget.id);
+                    
                     final adjustmentRef =
                         docRef.collection("adjustments").doc();
                     await adjustmentRef.set({
                       "title": _enteredText,
                       "price": _priceController.text,
+                      "id": adjustmentRef.id,
+                      "people": _peopleController.text,
+                      "paylist": [],
+                      "payed":[]
                     });
+                    Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
