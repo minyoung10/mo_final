@@ -5,6 +5,7 @@ class UserProvider {
   static String? userNameInFireStore;
   static String? userEmail;
   static String? userEmailInFireStore;
+  static String? userJob;
 
   static String? userPassword;
   static String? userPasswordInFireStore;

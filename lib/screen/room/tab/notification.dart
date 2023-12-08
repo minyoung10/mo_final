@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:mo_final/info/user.dart';
 
 import '../../../themepage/theme.dart';
 import '../add/add_notification.dart';
@@ -65,12 +66,22 @@ class NotificationTabState extends State<NotificationTab> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              roomData[index]['title'],
-                              style: blackw700.copyWith(fontSize: 18),
+                            Row(
+                              children: [
+                                Text(
+                                  roomData[index]['title'],
+                                  style: blackw700.copyWith(fontSize: 18),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  '${roomData[index]['writer']} (${roomData[index]['job']})',
+                                  style: blackw500.copyWith(fontSize: 18),
+                                ),
+                              ],
                             ),
                             Container(
                               padding: const EdgeInsets.all(10),
+                              width: double.infinity,
                               color: const Color.fromRGBO(
                                   227, 255, 217, 1), // 연두색 설정
                               child: Text(
@@ -99,6 +110,7 @@ class NotificationTabState extends State<NotificationTab> {
                 MaterialPageRoute(
                   builder: (context) => AddNotification(
                     id: widget.id,
+                    job: UserProvider.userJob as String,
                   ),
                 ),
               );

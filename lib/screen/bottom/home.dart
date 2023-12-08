@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mo_final/screen/bottom/entrance.dart';
 
 import '../../info/user.dart';
 import '../../themepage/theme.dart';
@@ -18,7 +19,7 @@ class HomePage extends StatefulWidget {
 class _HomePageScreenState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   final FocusNode _textFieldFocus = FocusNode();
-  final TextEditingController _textEditingController = TextEditingController();
+  final TextEditingController _roomNameController = TextEditingController();
   bool _isTextFieldEmpty = true;
   String _enteredText = '';
   @override
@@ -31,13 +32,13 @@ class _HomePageScreenState extends State<HomePage>
   void dispose() {
     _textFieldFocus.removeListener(_updateTextFieldState);
     _textFieldFocus.dispose();
-    _textEditingController.dispose();
+    _roomNameController.dispose();
     super.dispose();
   }
 
   void _updateTextFieldState() {
     setState(() {
-      _enteredText = _textEditingController.text;
+      _enteredText = _roomNameController.text;
       _isTextFieldEmpty = _enteredText.isEmpty;
     });
   }
@@ -46,7 +47,6 @@ class _HomePageScreenState extends State<HomePage>
 
   String? name;
   List<String> roomCode = [];
-  final TextEditingController _roomNameController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,10 +168,11 @@ class _HomePageScreenState extends State<HomePage>
         return StatefulBuilder(
           builder: (context, setStateInside) {
             return Container(
-              height: 327,
+              height: 300,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(23), color: Colors.white),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Center(
@@ -191,7 +192,7 @@ class _HomePageScreenState extends State<HomePage>
                         style: blackw700.copyWith(
                             fontSize: 18, letterSpacing: -1)),
                   ),
-                  const SizedBox(height: 42),
+                  const SizedBox(height: 15),
                   Container(
                     margin: const EdgeInsets.only(left: 25, right: 25),
                     child: Column(
@@ -208,6 +209,7 @@ class _HomePageScreenState extends State<HomePage>
                           ],
                         ),
                         TextField(
+                          maxLength: 4,
                           controller: _roomNameController,
                           style: blackw500.copyWith(
                               fontSize: 24, letterSpacing: -1.5),
@@ -238,68 +240,29 @@ class _HomePageScreenState extends State<HomePage>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 67.0),
+                  const SizedBox(height: 30),
                   Container(
                     width: 343,
                     height: 45,
                     margin: const EdgeInsets.only(left: 25, right: 25),
                     child: ElevatedButton(
-                      onPressed: isConfirmButtonEnabled
-                          ? () async {
-                              final roomCodeText = _roomNameController.text;
-                              _roomNameController.clear();
+                      onPressed: () async {
+                        final roomCodeText = _roomNameController.text;
+                        _roomNameController.clear();
 
-                              final querySnapshot = await firestore
-                                  .collection('Biginfo')
-                                  .where('code', isEqualTo: roomCodeText)
-                                  .get();
-
-                              if (querySnapshot.docs.isNotEmpty) {
-                                final roomId = querySnapshot.docs[0].id;
-                                final roomDoc =
-                                    firestore.collection('Biginfo').doc(roomId);
-                                await roomDoc.update({
-                                  "users_id": FieldValue.arrayUnion(
-                                      [UserProvider.userId]),
-                                  "users_name": FieldValue.arrayUnion(
-                                      [UserProvider.userName]),
-                                });
-                                setState(() {
-                                  roomCode.add(roomCodeText);
-                                });
-                                roomDoc.get().then((docSnapshot) {
-                                  final roomData = docSnapshot.data();
-                                  final title = roomData?['title'] as String;
-                                  debugPrint(title);
-                                  final mission =
-                                      roomData?['mission'] as String;
-                                  debugPrint(mission);
-                                  final image =
-                                      roomData?['roomImage'] as String;
-                                  debugPrint(image);
-
-                                  Navigator.pop(context);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => Room(
-                                        id: roomId,
-                                      ),
-                                    ),
-                                  );
-                                  // 이제 roomTitle을 사용하여 원하는 곳에 표시할 수 있습니다.
-                                }).catchError((error) {
-                                  debugPrint('Error getting document: $error');
-                                });
-                              }
-                            }
-                          : null,
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  Entrance(code: roomCodeText)),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius:
                                 BorderRadius.circular(12), // 버튼 모서리 둥글기 설정
                           ),
-                          backgroundColor: const Color(0xFFEF597D)),
+                          backgroundColor: Theme.of(context).primaryColor),
                       child: Text(
                         '입장하기',
                         style: whitew700.copyWith(fontSize: 16),
@@ -326,6 +289,7 @@ final firestore = FirebaseFirestore.instance;
 
 class TabbarviewinmoaState extends State<Tabbarviewinmoa>
     with SingleTickerProviderStateMixin {
+  bool isConfirmButtonEnabled = false;
   late TabController _tabController;
   @override
   void initState() {
@@ -616,7 +580,6 @@ class TabbarviewinmoaState extends State<Tabbarviewinmoa>
   }
 
   void _showEnterRoomBottomSheet(BuildContext context) {
-    bool isConfirmButtonEnabled = false;
     showModalBottomSheet(
       backgroundColor: Colors.transparent,
       context: context,
@@ -624,10 +587,11 @@ class TabbarviewinmoaState extends State<Tabbarviewinmoa>
         return StatefulBuilder(
           builder: (context, setStateInside) {
             return Container(
-              height: 327,
+              height: 300,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(23), color: Colors.white),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Center(
@@ -647,7 +611,7 @@ class TabbarviewinmoaState extends State<Tabbarviewinmoa>
                         style: blackw700.copyWith(
                             fontSize: 18, letterSpacing: -1)),
                   ),
-                  const SizedBox(height: 42),
+                  const SizedBox(height: 15),
                   Container(
                     margin: const EdgeInsets.only(left: 25, right: 25),
                     child: Column(
@@ -664,6 +628,7 @@ class TabbarviewinmoaState extends State<Tabbarviewinmoa>
                           ],
                         ),
                         TextField(
+                          maxLength: 4,
                           controller: _roomNameController,
                           style: blackw500.copyWith(
                               fontSize: 24, letterSpacing: -1.5),
@@ -683,74 +648,40 @@ class TabbarviewinmoaState extends State<Tabbarviewinmoa>
                           ),
                           keyboardType: TextInputType.number,
                           inputFormatters: <TextInputFormatter>[
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'[0-9]')), // 숫자만 허용
-                            LengthLimitingTextInputFormatter(4), // 4자리까지 입력 가능
+                            FilteringTextInputFormatter.digitsOnly
                           ],
                           onChanged: (value) {
                             setState(() {
-                              if (value.length == 4) {
-                                isConfirmButtonEnabled = true;
-                              } else {
-                                isConfirmButtonEnabled = false;
-                              }
+                              isConfirmButtonEnabled = value.length == 4;
                             });
                           },
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 67.0),
+                  const SizedBox(height: 30),
                   Container(
                     width: 343,
                     height: 45,
                     margin: const EdgeInsets.only(left: 25, right: 25),
                     child: ElevatedButton(
-                      onPressed: isConfirmButtonEnabled
-                          ? () async {
-                              final roomCodeText = _roomNameController.text;
-                              _roomNameController.clear();
+                      onPressed: () async {
+                        final roomCodeText = _roomNameController.text;
+                        _roomNameController.clear();
 
-                              final querySnapshot = await firestore
-                                  .collection('Biginfo')
-                                  .where('code', isEqualTo: roomCodeText)
-                                  .get();
-
-                              if (querySnapshot.docs.isNotEmpty) {
-                                final roomId = querySnapshot.docs[0].id;
-                                final roomDoc =
-                                    firestore.collection('Biginfo').doc(roomId);
-                                await roomDoc.update({
-                                  "users_id": FieldValue.arrayUnion(
-                                      [FirebaseAuth.instance.currentUser!.uid]),
-                                  "users_name": FieldValue.arrayUnion(
-                                      [FirebaseAuth.instance.currentUser!.uid])
-                                });
-                                setState(() {
-                                  roomCode.add(roomCodeText);
-                                });
-                                roomDoc.get().then((docSnapshot) {
-                                  Navigator.pop(context);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => Room(
-                                        id: roomId,
-                                      ),
-                                    ),
-                                  );
-                                }).catchError((error) {
-                                  debugPrint('Error getting document: $error');
-                                });
-                              }
-                            }
-                          : null,
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  Entrance(code: roomCodeText)),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius:
                                 BorderRadius.circular(12), // 버튼 모서리 둥글기 설정
                           ),
-                          backgroundColor: const Color(0xFFEF597D)),
+                          backgroundColor: Theme.of(context).primaryColor),
                       child: Text(
                         '입장하기',
                         style: whitew700.copyWith(fontSize: 16),

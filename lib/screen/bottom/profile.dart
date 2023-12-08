@@ -209,7 +209,8 @@ class _ProfileScreenState extends State<Profile> {
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: ((context) => const LoginPage())));
+                                        builder: ((context) =>
+                                            const LoginPage())));
                               },
                               style: TextButton.styleFrom(),
                               child: Text(

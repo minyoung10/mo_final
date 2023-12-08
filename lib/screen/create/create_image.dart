@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'dart:math';
 
@@ -10,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../info/big.dart';
+import '../../info/user.dart';
 import '../../themepage/theme.dart';
 import '../room/room.dart';
 
@@ -108,12 +111,9 @@ class _RoomImageSetState extends State<RoomImageSet> {
                                 "users_id": [
                                   FirebaseAuth.instance.currentUser!.uid
                                 ],
-                                "users_name": [
-                                  FirebaseAuth.instance.currentUser!.uid
-                                ],
+                                "users_name": [UserProvider.userName],
                                 'users_job': {
-                                  FirebaseAuth.instance.currentUser!.uid:
-                                      BigInfoProvider.job
+                                  UserProvider.userName: BigInfoProvider.job
                                 },
                               });
                               Navigator.pop(context);
@@ -136,6 +136,7 @@ class _RoomImageSetState extends State<RoomImageSet> {
                             child: const Text(
                               '완료하기',
                               style: TextStyle(
+                                color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                               ),

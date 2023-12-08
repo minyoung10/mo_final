@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../../../themepage/theme.dart';
 import '../add/add_meeting.dart';
-import '../add/add_notification.dart';
 import '../detail/notification_detail.dart';
 
 class MeetingTab extends StatefulWidget {
@@ -47,6 +46,8 @@ class MeetingTabState extends State<MeetingTab> {
                   shrinkWrap: true,
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
+                    List<String> images =
+                        List.castFrom(roomData[index]['images']);
                     return GestureDetector(
                       onTap: () {
                         debugPrint(roomData[index]['id']);
@@ -70,15 +71,25 @@ class MeetingTabState extends State<MeetingTab> {
                               roomData[index]['title'],
                               style: blackw700.copyWith(fontSize: 18),
                             ),
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              color: const Color.fromRGBO(
-                                  227, 255, 217, 1), // 연두색 설정
-                              child: Text(
-                                roomData[index]['context'],
-                                style: blackw500.copyWith(fontSize: 18),
+                            if (images.isNotEmpty)
+                              Container(
+                                height: 100, // 이미지 높이 조절
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal, // 수평으로 스크롤
+                                  itemCount: images.length,
+                                  itemBuilder: (context, imageIndex) {
+                                    return Padding(
+                                      padding: const EdgeInsets.all(1),
+                                      child: Image.network(
+                                        images[imageIndex],
+                                        height: 80, // 이미지 높이 조절
+                                        width: 80, // 이미지 너비 조절
+                                        fit: BoxFit.cover,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ),

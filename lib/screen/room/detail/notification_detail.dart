@@ -45,6 +45,8 @@ class _NotificationDetailState extends State<NotificationDetail> {
             final image = roomData['image'] as String;
             final title = roomData['title'] as String;
             final content = roomData['context'] as String;
+            final writer = roomData['writer'] as String;
+            final job = roomData['job'] as String;
 
             return Scaffold(
               appBar: AppBar(
@@ -112,11 +114,18 @@ class _NotificationDetailState extends State<NotificationDetail> {
                         ),
                       ),
                       const SizedBox(height: 27),
-                      Center(
-                        child: Text(title,
-                            style: blackw700.copyWith(
-                              fontSize: 18,
-                            )),
+                      Row(
+                        children: [
+                          Text(title,
+                              style: blackw700.copyWith(
+                                fontSize: 18,
+                              )),
+                          const Spacer(),
+                          Text(
+                            '$writer ($job)',
+                            style: blackw500.copyWith(fontSize: 18),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 10),
                       Container(

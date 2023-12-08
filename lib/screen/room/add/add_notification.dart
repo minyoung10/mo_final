@@ -6,15 +6,18 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mo_final/info/user.dart';
 
 import '../../../info/big.dart';
 import '../../../themepage/theme.dart';
 
 class AddNotification extends StatefulWidget {
   final String id;
+  final String job;
 
   const AddNotification({
     required this.id,
+    required this.job,
     super.key,
   });
 
@@ -148,14 +151,27 @@ class _AddNotificationState extends State<AddNotification> {
                     final docRef = FirebaseFirestore.instance
                         .collection("Biginfo")
                         .doc(widget.id);
-                    final notificationRef =
-                        docRef.collection("notifications").doc();
-                    await notificationRef.set({
-                      "title": _enteredText,
-                      "context": _textFieldController.text,
-                      "image": BigInfoProvider.roomImage,
-                      "id": notificationRef.id,
-                    });
+
+                    DocumentSnapshot<Map<String, dynamic>> docSnapshot =
+                        await docRef.get();
+
+                    if (docSnapshot.exists) {
+                      // 문서가 존재할 때만 데이터를 사용
+                      final notificationRef =
+                          docRef.collection("notifications").doc();
+                      await notificationRef.set({
+                        "title": _enteredText,
+                        "context": _textFieldController.text,
+                        "image": BigInfoProvider.roomImage,
+                        "id": notificationRef.id,
+                        "writer": UserProvider.userName,
+                        "job": widget.job,
+                      });
+                    } else {
+                      // 문서가 존재하지 않을 때의 처리
+                      print("문서가 존재하지 않습니다.");
+                    }
+
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
